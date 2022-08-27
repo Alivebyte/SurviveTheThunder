@@ -1,5 +1,6 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
+#include "Extensions/olcPGEX_Network.h"
 
 #include "resourcemanager.h"
 
