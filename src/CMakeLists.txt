@@ -7,3 +7,4 @@ add_executable(SpaceShift
 	${SOURCE_CODE})
 	
 target_include_directories(SpaceShift PRIVATE "${CMAKE_SOURCE_DIR}/olcPixelGameEngine")
+target_include_directories(SpaceShift PRIVATE "${CMAKE_SOURCE_DIR}/include")

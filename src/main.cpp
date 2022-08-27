@@ -1,6 +1,6 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
-
+#include "Extensions/olcPGEX_Network.h"
 class Example : public olc::PixelGameEngine
 {
 public:
