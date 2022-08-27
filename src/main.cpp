@@ -1,10 +1,15 @@
 #define OLC_PGE_APPLICATION
 #include "olcPixelGameEngine.h"
 #include "Extensions/olcPGEX_Network.h"
+
+#include "resourcemanager.h"
+
 class Example : public olc::PixelGameEngine
 {
+	olc::Sprite* m_pSprite;
 public:
-	Example()
+	Example() :
+		m_pSprite(nullptr)
 	{
 		sAppName = "";
 	}
@@ -12,16 +17,35 @@ public:
 public:
 	bool OnUserCreate() override
 	{
-		// Called once at the start, so create things here
+		// Resource manager init
+		g_pResourceManager = new cResourceManager();
+		g_pResourceManager->Init();
+
+		/*olc::ResourcePack* pResourcePack = new olc::ResourcePack();
+		pResourcePack->AddFile("res/test.bmp");
+
+		pResourcePack->SavePack("datapc_main.respack", "easy peasy lemon squeezy");*/
+
+		m_pSprite = g_pResourceManager->LoadSprite("res/mm_background.png");
+
+		return true;
+	}
+
+	bool OnUserDestroy() override
+	{
+		g_pResourceManager->Shutdown();
+		delete g_pResourceManager;
+
 		return true;
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		// called once per frame
-		for (int x = 0; x < ScreenWidth(); x++)
-			for (int y = 0; y < ScreenHeight(); y++)
-				Draw(x, y, olc::Pixel(rand() % 255, rand() % 255, rand() % 255));
+		if (m_pSprite)
+		{
+			DrawSprite(olc::vi2d(0, 0), m_pSprite);
+		}
+
 		return true;
 	}
 };
@@ -30,7 +54,7 @@ public:
 int main()
 {
 	Example demo;
-	if (demo.Construct(256, 240, 1, 1))
+	if (demo.Construct(512, 512, 1, 1))
 		demo.Start();
 
 	return 0;
