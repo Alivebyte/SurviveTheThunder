@@ -8,6 +8,8 @@
 struct Player
 {
 	olc::vf2d vPos;
+
+	float health;
 };
 
 class App : public olc::PixelGameEngine
@@ -37,6 +39,10 @@ public:
 	{
 		sAppName = "TBD";
 	}
+private:
+
+	bool bUserControlEnabled = true;
+	bool bAIEnabled = false;
 
 public:
 	bool OnUserCreate() override
@@ -75,16 +81,27 @@ public:
 		switch (nGameState)
 		{
 		case GAME_RESET:
+			DrawString({ 3,0 }, "Current state: GAME_RESET");
+			bUserControlEnabled = false;
+			nNextGameState = GAME_PREPARE;
 			break;
 		case GAME_PREPARE:
+			DrawString({ 3,0 }, "Current state: GAME_PREPARE");
+			// temporary enabling controls
+			bUserControlEnabled = true;
+
 			break;
 		case GAME_PREPARING:
+
 			break;
 		case GAME_ROUND_START:
+
 			break;
 		case GAME_ROUND_END:
+
 			break;
 		case GAME_OVER:
+
 			break;
 		}
 
@@ -101,16 +118,32 @@ public:
 			nNextAIState = AI_WAIT;
 			break;
 		}
+
+		if (bUserControlEnabled)
+		{
+			if (GetKey(olc::Key::W).bHeld) (player.vPos += {0.0f, -1.0f}) * fElapsedTime;
+			if (GetKey(olc::Key::S).bHeld) (player.vPos += {0.0f, 1.0f})* fElapsedTime;
+			if (GetKey(olc::Key::A).bHeld) (player.vPos += {-1.0f, 0.0f})* fElapsedTime;
+			if (GetKey(olc::Key::D).bHeld) (player.vPos += {1.0f, 0.0f})* fElapsedTime;
+		}
+		
+
+		// Draw
+		FillRect(player.vPos, { 20, 20 });
+		// Test output
+
 		/*if (m_pSprite)
 		{
 			DrawSprite(olc::vi2d(0, 0), m_pSprite);
 		}*/
+		nGameState = nNextGameState;
 
 		return true;
 	}
 
 private:
 	bool bGameOver = false;
+	Player player;
 
 };
 
