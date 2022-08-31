@@ -238,6 +238,7 @@ public:
 		{
 			DrawSprite(olc::vi2d(0, 0), m_pSprite);
 		}*/
+		//if (GetKey(olc::Key::ESCAPE).bReleased) return false;
 		nGameState = nNextGameState;
 		nAIState = nNextAIState;
 
@@ -261,7 +262,7 @@ private:
 int main()
 {
 	App application;
-	if (application.Construct(512, 512, 1, 1))
+	if (application.Construct(1024, 720, 1, 1))
 		application.Start();
 
 	return 0;
