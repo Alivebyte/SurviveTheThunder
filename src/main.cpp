@@ -37,7 +37,7 @@ public:
 	App() :
 		m_pSprite(nullptr)
 	{
-		sAppName = "TBD";
+		sAppName = "Survive The Thunder";
 	}
 private:
 
@@ -76,7 +76,7 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{	
-		Clear(olc::BLACK);
+		Clear(olc::DARK_GREEN);
 
 		switch (nGameState)
 		{
@@ -84,6 +84,9 @@ public:
 			prepareTimer = 0;
 			roundTimer = 0;
 			nNumRounds = 0;
+			nAIAttackInterval = 5;
+			player.health = 100.0f;
+			bGameOver = false;
 			DrawString({ 3,0 }, "Current state: GAME_RESET");
 			bUserControlEnabled = false;
 			bAIEnabled = false;
@@ -93,7 +96,7 @@ public:
 			DrawString({ 3,0 }, "Current state: GAME_PREPARE");
 			// temporary enabling controls
 			//bUserControlEnabled = true;
-
+			player.vPos = { rand() % ScreenWidth() / 1.5f, rand() % ScreenHeight() / 1.5f };
 			nNextGameState = GAME_PREPARING;
 			break;
 		case GAME_PREPARING:
@@ -101,8 +104,8 @@ public:
 			prepareTimer += fElapsedTime;
 			if (prepareTimer <= 6.0f)
 			{
-				DrawString({ ScreenWidth() / 2, ScreenHeight() / 2 }, "Prepare for round!");
-				DrawString({ ScreenWidth() / 2, ScreenHeight() / 2 + 10 }, std::to_string((int)prepareTimer));
+				DrawString({ (ScreenWidth() / 3), (ScreenHeight() / 2) - 8}, "Prepare for round!");
+				DrawString({ (ScreenWidth() / 2) - 8, (ScreenHeight() / 2) + 10 }, std::to_string((int)prepareTimer));
 			}
 			else 
 			{
@@ -113,17 +116,28 @@ public:
 			break;
 		case GAME_ROUND_START:
 			DrawString({ 3,0 }, "Current state: GAME_ROUND_START");
+			// Draw player's health
+			DrawString({ 0,ScreenHeight() - 10 }, "Player's Health: ");
+			DrawString({ sizeof("Player's Health: ") * 8,ScreenHeight() - 10 }, std::to_string((int)player.health));
 			bAIEnabled = true;
 			bUserControlEnabled = true;
 			roundTimer += fElapsedTime;
+
+			
+
 			if (roundTimer < 11.0f)
 			{
-				DrawString({ ScreenWidth() / 2, ScreenHeight() / 2 }, "Round time:");
-				DrawString({ ScreenWidth() / 2, ScreenHeight() / 2 + 10 }, std::to_string((int)roundTimer));
+				DrawString({ (ScreenWidth() / 2) - 50, (ScreenHeight() / 2) - 8 }, "Round time: ");
+				DrawString({ ((ScreenWidth() / 2) + ((int)sizeof("Round time: ") * 8)) - 50, (ScreenHeight() / 2) - 8}, std::to_string((int)roundTimer));
 			}
 			else
 			{
 				nNextGameState = GAME_ROUND_END;
+			}
+
+			if (player.health <= 0)
+			{
+				nNextGameState = GAME_OVER;
 			}
 
 			break;
@@ -141,7 +155,7 @@ public:
 			}
 			else
 			{
-				DrawString({ ScreenWidth() / 2, ScreenHeight() / 2 }, "Round survived!");
+				DrawString({ (ScreenWidth() / 2) - 8, (ScreenHeight() / 2) - 8 }, "Round survived!");
 				nNextGameState = GAME_PREPARE;
 				break;
 			}
@@ -162,13 +176,24 @@ public:
 			switch (nAIState)
 			{
 			case AI_WAIT:
-				// Do waiting stuff like calculating players health and perfect... moment?
-
-				nNextAIState = AI_ATTACK;
+				// Prepare for attack, wait for interval
+				
+				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_WAIT")*8), 0 }, "AI state: AI_WAIT");
+				fAIAttackTimer += fElapsedTime;
+				if (nAIAttackInterval < fAIAttackTimer) 
+				{
+					vLastPos = player.vPos;
+					nNextAIState = AI_ATTACK; 
+				}
 				break;
 			case AI_ATTACK:
-				// Attack the player, reduce player damage
-
+				// Attack the player, get last player pos, damage and reduce health
+				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_ATTACK")*8), 0 }, "AI state: AI_ATTACK");
+				
+				// Check if last grabbed pos is equal to current pos and damage the player
+				if (vLastPos == player.vPos) player.health -= 10.0f;
+				// Reset attack timer
+				fAIAttackTimer = 0;
 				nNextAIState = AI_WAIT;
 				break;
 			}
@@ -177,20 +202,27 @@ public:
 
 		if (bUserControlEnabled)
 		{
-			if (GetKey(olc::Key::W).bHeld) (player.vPos += {0.0f, -1.0f}) * fElapsedTime;
-			if (GetKey(olc::Key::S).bHeld) (player.vPos += {0.0f, 1.0f})* fElapsedTime;
-			if (GetKey(olc::Key::A).bHeld) (player.vPos += {-1.0f, 0.0f})* fElapsedTime;
-			if (GetKey(olc::Key::D).bHeld) (player.vPos += {1.0f, 0.0f})* fElapsedTime;
+			if (GetKey(olc::Key::W).bHeld) (player.vPos += {0.0f, -5.0f}) * fElapsedTime;
+			if (GetKey(olc::Key::S).bHeld) (player.vPos += {0.0f, 5.0f})* fElapsedTime;
+			if (GetKey(olc::Key::A).bHeld) (player.vPos += {-5.0f, 0.0f})* fElapsedTime;
+			if (GetKey(olc::Key::D).bHeld) (player.vPos += {5.0f, 0.0f})* fElapsedTime;
 		}
 		
+		if (player.vPos.x < 0) player.vPos.x = 0;
+		if (player.vPos.y < 0) player.vPos.y = 0;
+		if (player.vPos.x > (ScreenWidth() - 20)) player.vPos.x = ScreenWidth() - 20;
+		if (player.vPos.y > (ScreenHeight() - 20)) player.vPos.y = ScreenHeight() - 20;
 
 		// Draw player
 		FillRect(player.vPos, { 20, 20 });
+		
 		// Test output
 		if (bGameOver)
 		{
 			Clear(olc::DARK_RED);
-			DrawString({ ScreenWidth() / 2, ScreenHeight() / 2 }, "GAME OVER", olc::BLACK);
+			DrawString({ ScreenWidth() / 2 - 50, ScreenHeight() / 2 }, "GAME OVER", olc::BLACK);
+			DrawString({ ScreenWidth() / 2 - 100, ScreenHeight() / 2 + 10 }, "Press SPACE to restart!", olc::BLACK);
+			if (GetKey(olc::Key::SPACE).bReleased) nNextGameState = GAME_RESET;
 		}
 		/*if (m_pSprite)
 		{
@@ -206,7 +238,10 @@ private:
 	bool bGameOver = false;
 	float prepareTimer = 0;
 	float roundTimer = 0;
+	float fAIAttackTimer = 0;
+	int nAIAttackInterval = 0;
 	int nNumRounds;
+	olc::vf2d vLastPos = { 0,0 };
 	Player player;
 
 };
