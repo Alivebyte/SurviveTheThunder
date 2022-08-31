@@ -96,13 +96,14 @@ public:
 			DrawString({ 3,0 }, "Current state: GAME_PREPARE");
 			// temporary enabling controls
 			//bUserControlEnabled = true;
+			bAbleToDrawPlayer = false;
 			player.vPos = { rand() % ScreenWidth() / 1.5f, rand() % ScreenHeight() / 1.5f };
 			nNextGameState = GAME_PREPARING;
 			break;
 		case GAME_PREPARING:
 			DrawString({ 3,0 }, "Current state: GAME_PREPARING");
 			prepareTimer += fElapsedTime;
-			if (prepareTimer <= 6.0f)
+			if (prepareTimer <= 4.0f)
 			{
 				DrawString({ (ScreenWidth() / 3), (ScreenHeight() / 2) - 8}, "Prepare for round!");
 				DrawString({ (ScreenWidth() / 2) - 8, (ScreenHeight() / 2) + 10 }, std::to_string((int)prepareTimer));
@@ -121,6 +122,8 @@ public:
 			DrawString({ sizeof("Player Health: ") * 8,ScreenHeight() - 10 }, std::to_string((int)player.health));
 			bAIEnabled = true;
 			bUserControlEnabled = true;
+			// Enable player draw
+			bAbleToDrawPlayer = true;
 			roundTimer += fElapsedTime;
 
 			
@@ -148,6 +151,8 @@ public:
 			nNumRounds++;
 			prepareTimer = 0;
 			roundTimer = 0;
+			// Lower AI attack interval each round;
+			nAIAttackInterval -= 1.5f;
 			if (nNumRounds == 3)
 			{
 				nNextGameState = GAME_OVER;
@@ -177,21 +182,25 @@ public:
 			{
 			case AI_WAIT:
 				// Prepare for attack, wait for interval
-				
-				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_WAIT")*8), 0 }, "AI state: AI_WAIT");
+
+				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_WAIT") * 8), 0 }, "AI state: AI_WAIT");
 				fAIAttackTimer += fElapsedTime;
-				if (nAIAttackInterval < fAIAttackTimer) 
+				if (nAIAttackInterval < fAIAttackTimer)
 				{
 					vLastPos = player.vPos;
-					nNextAIState = AI_ATTACK; 
+					nNextAIState = AI_ATTACK;
 				}
 				break;
 			case AI_ATTACK:
 				// Attack the player, get last player pos, damage and reduce health
-				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_ATTACK")*8), 0 }, "AI state: AI_ATTACK");
-				
+				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_ATTACK") * 8), 0 }, "AI state: AI_ATTACK");
+				FillRect(vLastPos, { 20,20 }, olc::RED);
 				// Check if last grabbed pos is equal to current pos and damage the player
-				if (vLastPos == player.vPos) player.health -= 10.0f;
+				if (vLastPos == player.vPos)
+				{
+					player.health -= 10.0f;
+					
+				}
 				// Reset attack timer
 				fAIAttackTimer = 0;
 				nNextAIState = AI_WAIT;
@@ -222,7 +231,7 @@ public:
 		{
 			Clear(olc::DARK_RED);
 			DrawString({ ScreenWidth() / 2 - 50, ScreenHeight() / 2 }, "GAME OVER", olc::BLACK);
-			DrawString({ ScreenWidth() / 2 - 100, ScreenHeight() / 2 + 10 }, "Press SPACE to restart!", olc::BLACK);
+			DrawString({ ScreenWidth() / 2 - 100, ScreenHeight() / 2 + 15 }, "Press SPACE to restart!", olc::BLACK);
 			if (GetKey(olc::Key::SPACE).bReleased) nNextGameState = GAME_RESET;
 		}
 		/*if (m_pSprite)
@@ -238,8 +247,8 @@ public:
 private:
 	bool bGameOver = false;
 	bool bAbleToDrawPlayer = false;
-	float prepareTimer = 0;
-	float roundTimer = 0;
+	float prepareTimer = 1;
+	float roundTimer = 1;
 	float fAIAttackTimer = 0;
 	int nAIAttackInterval = 0;
 	int nNumRounds;
