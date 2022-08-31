@@ -117,8 +117,8 @@ public:
 		case GAME_ROUND_START:
 			DrawString({ 3,0 }, "Current state: GAME_ROUND_START");
 			// Draw player's health
-			DrawString({ 0,ScreenHeight() - 10 }, "Player's Health: ");
-			DrawString({ sizeof("Player's Health: ") * 8,ScreenHeight() - 10 }, std::to_string((int)player.health));
+			DrawString({ 0,ScreenHeight() - 10 }, "Player Health: ");
+			DrawString({ sizeof("Player Health: ") * 8,ScreenHeight() - 10 }, std::to_string((int)player.health));
 			bAIEnabled = true;
 			bUserControlEnabled = true;
 			roundTimer += fElapsedTime;
@@ -214,6 +214,7 @@ public:
 		if (player.vPos.y > (ScreenHeight() - 20)) player.vPos.y = ScreenHeight() - 20;
 
 		// Draw player
+		if(bAbleToDrawPlayer)
 		FillRect(player.vPos, { 20, 20 });
 		
 		// Test output
@@ -236,6 +237,7 @@ public:
 
 private:
 	bool bGameOver = false;
+	bool bAbleToDrawPlayer = false;
 	float prepareTimer = 0;
 	float roundTimer = 0;
 	float fAIAttackTimer = 0;
