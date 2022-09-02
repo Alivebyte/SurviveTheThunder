@@ -33,3 +33,8 @@ olc::Sprite* cResourceManager::LoadSprite(const std::string& filename)
 
 	return (*spriteEntry).second;
 }
+
+int cResourceManager::LoadSound(const std::string & filename)
+{
+	return olc::SOUND::LoadAudioSample(filename);
+}

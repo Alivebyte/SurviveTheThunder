@@ -3,6 +3,7 @@
 //#include "Extensions/olcPGEX_Network.h"
 //#include "network.h" Not using since I don't know everything about it
 #include "resourcemanager.h"
+#include "soundsystem.h"
 
 
 struct Player
@@ -34,6 +35,14 @@ public:
 		GAME_OVER // Stage indicating that player finished all rounds or died
 	} nGameState, nNextGameState;
 
+	enum SOUND_TYPE
+	{
+		SOUND_TYPE_RAIN,
+		SOUND_TYPE_THUNDER,
+		SOUND_TYPE_ROUND_THEME,
+		SOUND_TYPE_MAX
+	};
+
 	App() :
 		m_pSprite(nullptr)
 	{
@@ -44,12 +53,73 @@ private:
 	bool bUserControlEnabled = true;
 	bool bAIEnabled = false;
 
+	cSound* m_pSounds[SOUND_TYPE_MAX];
+
+	void LoadSounds()
+	{
+		m_pSounds[SOUND_TYPE_RAIN] = g_pSoundSystem->CreateSound("res/sounds/rain1.wav");
+		m_pSounds[SOUND_TYPE_THUNDER] = g_pSoundSystem->CreateSound("res/sounds/thunder1.wav");
+		m_pSounds[SOUND_TYPE_ROUND_THEME] = g_pSoundSystem->CreateSound("res/sounds/round_theme.wav");
+
+		//m_pSounds[SOUND_TYPE_RAIN]->Play(true);
+	}
+
+	void SoundOnSwitchState()
+	{
+		cSound* pRain = m_pSounds[SOUND_TYPE_RAIN];
+		cSound* pRoundTheme = m_pSounds[SOUND_TYPE_ROUND_THEME];
+
+		switch (nGameState)
+		{
+		case GAME_RESET:
+			if (pRoundTheme && !pRoundTheme->IsPlaying())
+				pRoundTheme->Play(true);
+
+			break;
+
+		case GAME_PREPARE:
+			break;
+
+		case GAME_PREPARING:
+			if (pRoundTheme && !pRoundTheme->IsPlaying())
+				pRoundTheme->Play(true);
+			break;
+
+		case GAME_ROUND_START:
+			if (pRoundTheme && pRoundTheme->IsPlaying())
+				pRoundTheme->Stop();
+
+			if (pRain && !pRain->IsPlaying())
+				pRain->Play(true);
+
+			break;
+
+		case GAME_ROUND_END:
+			if (pRoundTheme && pRoundTheme->IsPlaying())
+				pRoundTheme->Stop();
+
+			if (pRain && pRain->IsPlaying())
+				pRain->Stop();
+			break;
+
+		case GAME_OVER:
+			break;
+
+		}
+	}
+
 public:
 	bool OnUserCreate() override
 	{
 		// Resource manager init
 		g_pResourceManager = new cResourceManager();
 		g_pResourceManager->Init();
+
+		// Sound system init
+		g_pSoundSystem = new cSoundSystem();
+		g_pSoundSystem->Init();
+
+		LoadSounds();
 
 		nAIState = AI_WAIT;
 		nNextAIState = AI_WAIT;
@@ -68,6 +138,9 @@ public:
 
 	bool OnUserDestroy() override
 	{
+		g_pSoundSystem->Shutdown();
+		delete g_pSoundSystem;
+
 		g_pResourceManager->Shutdown();
 		delete g_pResourceManager;
 
@@ -176,6 +249,8 @@ public:
 			break;
 		}
 		
+		SoundOnSwitchState();
+
 		if (bAIEnabled)
 		{
 			switch (nAIState)
@@ -207,7 +282,6 @@ public:
 				break;
 			}
 		}
-		
 
 		if (bUserControlEnabled)
 		{
@@ -224,7 +298,7 @@ public:
 
 		// Draw player
 		if(bAbleToDrawPlayer)
-		FillRect(player.vPos, { 20, 20 });
+			FillRect(player.vPos, { 20, 20 });
 		
 		// Test output
 		if (bGameOver)

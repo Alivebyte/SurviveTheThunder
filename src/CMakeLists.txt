@@ -9,4 +9,4 @@ add_executable(SpaceShift
 target_compile_features(SpaceShift PRIVATE cxx_std_17)
 target_include_directories(SpaceShift PRIVATE "${CMAKE_SOURCE_DIR}/olcPixelGameEngine")
 target_include_directories(SpaceShift PRIVATE "${CMAKE_SOURCE_DIR}/include")
-target_link_libraries(SpaceShift PRIVATE "${CMAKE_SOURCE_DIR}/lib/freetype.lib")
+#target_link_libraries(SpaceShift PRIVATE "${CMAKE_SOURCE_DIR}/lib/freetype.lib")
