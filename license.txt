@@ -1,0 +1,9 @@
+Graphics:
+Thunder sprite - https://www.pngwing.com/en/free-png-bbyqy
+
+Textures used at background image - https://opengameart.org/content/wall-grass-rock-stone-wood-and-dirt-480
+
+Sounds:
+rain1.wav, thunder1.wav, thunder2.wav - https://freesound.org/people/FlatHill/sounds/237729/
+
+round_theme.wav - Doot - E1M1 [Knee-Deep in the Doot] (https://www.youtube.com/watch?v=hzPpWInAiOg)

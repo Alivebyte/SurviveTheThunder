@@ -1,4 +1,5 @@
 #define OLC_PGE_APPLICATION
+//#define OLC_GFX_OPENGL33
 #include "olcPixelGameEngine.h"
 //#include "Extensions/olcPGEX_Network.h"
 //#include "network.h" Not using since I don't know everything about it
@@ -62,7 +63,7 @@ private:
 	void LoadSounds()
 	{
 		m_pSounds[SOUND_TYPE_RAIN] = g_pSoundSystem->CreateSound("res/sounds/rain1.wav");
-		m_pSounds[SOUND_TYPE_THUNDER] = g_pSoundSystem->CreateSound("res/sounds/thunder1.wav");
+		m_pSounds[SOUND_TYPE_THUNDER] = g_pSoundSystem->CreateSound("res/sounds/thunder2.wav");
 		m_pSounds[SOUND_TYPE_ROUND_THEME] = g_pSoundSystem->CreateSound("res/sounds/round_theme.wav");
 
 		//m_pSounds[SOUND_TYPE_RAIN]->Play(true);
@@ -112,6 +113,12 @@ private:
 			break;
 
 		case GAME_OVER:
+			if (pRain && pRain->IsPlaying())
+				pRain->Stop();
+
+			if (pThunder && pThunder->IsPlaying())
+				pThunder->Stop();
+
 			break;
 
 		}
@@ -153,9 +160,11 @@ public:
 
 		pResourcePack->SavePack("datapc_main.respack", "easy peasy lemon squeezy");*/
 
-		m_pSprite = g_pResourceManager->LoadSprite("res/player.png");
+		m_pSprite = g_pResourceManager->LoadSprite("res/player_new.png");
 
-		m_pThunderSprite = g_pResourceManager->LoadSprite("res/test/thunder_2.png");
+		m_pThunderSprite = g_pResourceManager->LoadSprite("res/new_thunder.png");
+
+		g_pResourceManager->SaveResourcePack();
 
 		return true;
 	}
@@ -288,6 +297,7 @@ public:
 			bAIEnabled = false;
 			bUserControlEnabled = false;
 			bGameOver = true;
+			bAbleToDrawLighting = false;
 
 			break;
 		}
@@ -347,7 +357,11 @@ public:
 			//FillRect(player.vPos, { 20, 20 });
 			if (m_pSprite)
 			{
-				DrawSprite(player.vPos, m_pSprite);
+				SetPixelMode(olc::Pixel::ALPHA);
+
+				DrawSprite(player.vPos, m_pSprite, 2);
+
+				SetPixelMode(olc::Pixel::NORMAL);
 			}
 			//m_pThunder->Render(this);
 		}
@@ -355,7 +369,15 @@ public:
 		// Draw Lightning
 		if (bAbleToDrawLighting)
 		{
-			DrawSprite(vLastPos, m_pThunderSprite, 2);
+			SetPixelMode(olc::Pixel::ALPHA);
+
+			olc::vd2d translatedThunderPos = vLastPos;
+			//translatedThunderPos.y -= 20;
+
+			DrawSprite(translatedThunderPos, m_pThunderSprite, 2);
+
+			SetPixelMode(olc::Pixel::NORMAL);
+
 			fDrawTime += fElapsedTime;
 			if (fDrawTime > 1.0f)
 			{
