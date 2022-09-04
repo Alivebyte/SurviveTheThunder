@@ -119,6 +119,9 @@ private:
 		switch (nAIState)
 		{
 		case AI_ATTACK:
+			if (pThunder && pThunder->IsPlaying())
+				pThunder->Stop();
+
 			if(pThunder && !pThunder->IsPlaying())
 				pThunder->Play(true);
 			break;
@@ -170,7 +173,24 @@ public:
 		return true;
 	}
 
+	float fTargetFrameTime = 1.0f / 100.0f; // Virtual FPS of 100fps
+	float fAccumulatedTime = 0.0f;
+
 	bool OnUserUpdate(float fElapsedTime) override
+	{
+		fAccumulatedTime += fElapsedTime;
+		if (fAccumulatedTime >= fTargetFrameTime)
+		{
+			fAccumulatedTime -= fTargetFrameTime;
+			fElapsedTime = fTargetFrameTime;
+		}
+		else
+			return true; // Don't do anything this frame
+
+		return GameUpdate(fElapsedTime);
+	}
+
+	bool GameUpdate(float fElapsedTime)
 	{
 		Clear(olc::DARK_GREEN);
 
@@ -335,7 +355,7 @@ public:
 		// Draw Lightning
 		if (bAbleToDrawLighting)
 		{
-			DrawSprite(vLastPos, m_pThunderSprite);
+			DrawSprite(vLastPos, m_pThunderSprite, 2);
 			fDrawTime += fElapsedTime;
 			if (fDrawTime > 1.0f)
 			{
