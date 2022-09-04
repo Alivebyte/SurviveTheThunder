@@ -16,6 +16,7 @@ struct Player
 class App : public olc::PixelGameEngine
 {
 	olc::Sprite* m_pSprite;
+	olc::Sprite* m_pThunderSprite;
 public:
 
 	enum AI_STATE
@@ -44,7 +45,8 @@ public:
 	};
 
 	App() :
-		m_pSprite(nullptr)
+		m_pSprite(nullptr),
+		m_pThunderSprite(nullptr)
 	{
 		sAppName = "Survive The Thunder";
 	}
@@ -70,6 +72,7 @@ private:
 	{
 		cSound* pRain = m_pSounds[SOUND_TYPE_RAIN];
 		cSound* pRoundTheme = m_pSounds[SOUND_TYPE_ROUND_THEME];
+		cSound* pThunder = m_pSounds[SOUND_TYPE_THUNDER];
 
 		switch (nGameState)
 		{
@@ -102,11 +105,23 @@ private:
 
 			if (pRain && pRain->IsPlaying())
 				pRain->Stop();
+			
+			if (pThunder && pThunder->IsPlaying())
+				pThunder->Stop();
+
 			break;
 
 		case GAME_OVER:
 			break;
 
+		}
+
+		switch (nAIState)
+		{
+		case AI_ATTACK:
+			if(pThunder && !pThunder->IsPlaying())
+				pThunder->Play(true);
+			break;
 		}
 	}
 
@@ -137,6 +152,8 @@ public:
 
 		m_pSprite = g_pResourceManager->LoadSprite("res/test.bmp");
 
+		m_pThunderSprite = g_pResourceManager->LoadSprite("res/test/thunder_2.png");
+
 		return true;
 	}
 
@@ -166,13 +183,13 @@ public:
 			nAIAttackInterval = 5;
 			player.health = 100.0f;
 			bGameOver = false;
-			DrawString({ 3,0 }, "Current state: GAME_RESET");
+			//DrawString({ 3,0 }, "Current state: GAME_RESET");
 			bUserControlEnabled = false;
 			bAIEnabled = false;
 			nNextGameState = GAME_PREPARE;
 			break;
 		case GAME_PREPARE:
-			DrawString({ 3,0 }, "Current state: GAME_PREPARE");
+			//DrawString({ 3,0 }, "Current state: GAME_PREPARE");
 			// temporary enabling controls
 			//bUserControlEnabled = true;
 			bAbleToDrawPlayer = false;
@@ -180,7 +197,7 @@ public:
 			nNextGameState = GAME_PREPARING;
 			break;
 		case GAME_PREPARING:
-			DrawString({ 3,0 }, "Current state: GAME_PREPARING");
+			//DrawString({ 3,0 }, "Current state: GAME_PREPARING");
 			prepareTimer += fElapsedTime;
 			if (prepareTimer <= 4.0f)
 			{
@@ -195,7 +212,7 @@ public:
 
 			break;
 		case GAME_ROUND_START:
-			DrawString({ 3,0 }, "Current state: GAME_ROUND_START");
+			//DrawString({ 3,0 }, "Current state: GAME_ROUND_START");
 			// Draw player's health
 			DrawString({ 0,ScreenHeight() - 10 }, "Player Health: ");
 			DrawString({ sizeof("Player Health: ") * 8,ScreenHeight() - 10 }, std::to_string((int)player.health));
@@ -224,7 +241,7 @@ public:
 
 			break;
 		case GAME_ROUND_END:
-			DrawString({ 3,0 }, "Current state: GAME_ROUND_END");
+			//DrawString({ 3,0 }, "Current state: GAME_ROUND_END");
 			bAIEnabled = false;
 			bUserControlEnabled = false;
 			nNumRounds++;
@@ -247,7 +264,7 @@ public:
 			break;
 		case GAME_OVER:
 			// Disable controls and AI, display text and suggest restarting the game;
-			DrawString({ 3,0 }, "Current state: GAME_OVER");
+			//DrawString({ 3,0 }, "Current state: GAME_OVER");
 			bAIEnabled = false;
 			bUserControlEnabled = false;
 			bGameOver = true;
@@ -259,12 +276,13 @@ public:
 
 		if (bAIEnabled)
 		{
+
 			switch (nAIState)
 			{
 			case AI_WAIT:
 				// Prepare for attack, wait for interval
 
-				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_WAIT") * 8), 0 }, "AI state: AI_WAIT");
+				//DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_WAIT") * 8), 0 }, "AI state: AI_WAIT");
 				fAIAttackTimer += fElapsedTime;
 				if (nAIAttackInterval < fAIAttackTimer)
 				{
@@ -274,8 +292,9 @@ public:
 				break;
 			case AI_ATTACK:
 				// Attack the player, get last player pos, damage and reduce health
-				DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_ATTACK") * 8), 0 }, "AI state: AI_ATTACK");
-				FillRect(vLastPos, { 20,20 }, olc::RED);
+				//DrawString({ ScreenWidth() - ((int)sizeof("AI state: AI_ATTACK") * 8), 0 }, "AI state: AI_ATTACK");
+				bAbleToDrawLighting = true;
+				//FillRect(vLastPos, { 20,20 }, olc::RED);
 				// Check if last grabbed pos is equal to current pos and damage the player
 				if (vLastPos == player.vPos)
 				{
@@ -291,10 +310,10 @@ public:
 
 		if (bUserControlEnabled)
 		{
-			if (GetKey(olc::Key::W).bHeld) (player.vPos += {0.0f, -5.0f}) * fElapsedTime;
-			if (GetKey(olc::Key::S).bHeld) (player.vPos += {0.0f, 5.0f})* fElapsedTime;
-			if (GetKey(olc::Key::A).bHeld) (player.vPos += {-5.0f, 0.0f})* fElapsedTime;
-			if (GetKey(olc::Key::D).bHeld) (player.vPos += {5.0f, 0.0f})* fElapsedTime;
+			if (GetKey(olc::Key::W).bHeld) fElapsedTime * (player.vPos += {0.0f, -5.0f});
+			if (GetKey(olc::Key::S).bHeld) fElapsedTime * (player.vPos += {0.0f, 5.0f});
+			if (GetKey(olc::Key::A).bHeld) fElapsedTime * (player.vPos += {-5.0f, 0.0f});
+			if (GetKey(olc::Key::D).bHeld) fElapsedTime * (player.vPos += {5.0f, 0.0f});
 		}
 
 		if (player.vPos.x < 0) player.vPos.x = 0;
@@ -306,9 +325,20 @@ public:
 		if (bAbleToDrawPlayer)
 		{
 			FillRect(player.vPos, { 20, 20 });
-			m_pThunder->Render(this);
+			//m_pThunder->Render(this);
 		}
-		
+
+		// Draw Lightning
+		if (bAbleToDrawLighting)
+		{
+			DrawSprite(vLastPos, m_pThunderSprite);
+			fDrawTime += fElapsedTime;
+			if (fDrawTime > 1.0f)
+			{
+				bAbleToDrawLighting = false;
+				fDrawTime = 0;
+			}
+		}
 		// Test output
 		if (bGameOver)
 		{
@@ -331,9 +361,11 @@ public:
 private:
 	bool bGameOver = false;
 	bool bAbleToDrawPlayer = false;
+	bool bAbleToDrawLighting = false;
 	float prepareTimer = 1;
 	float roundTimer = 1;
 	float fAIAttackTimer = 0;
+	float fDrawTime = 0;
 	int nAIAttackInterval = 0;
 	int nNumRounds;
 	olc::vf2d vLastPos = { 0,0 };
@@ -345,7 +377,7 @@ private:
 int main()
 {
 	App application;
-	if (application.Construct(1024, 720, 1, 1))
+	if (application.Construct(800, 600, 1, 1,false))
 		application.Start();
 
 	return 0;
