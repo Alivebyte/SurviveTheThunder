@@ -4,7 +4,7 @@
 //#include "network.h" Not using since I don't know everything about it
 #include "resourcemanager.h"
 #include "soundsystem.h"
-
+#include "weather.h"
 
 struct Player
 {
@@ -54,6 +54,8 @@ private:
 	bool bAIEnabled = false;
 
 	cSound* m_pSounds[SOUND_TYPE_MAX];
+
+	cThunder* m_pThunder;
 
 	void LoadSounds()
 	{
@@ -121,6 +123,8 @@ public:
 
 		LoadSounds();
 
+		m_pThunder = new cThunder();
+
 		nAIState = AI_WAIT;
 		nNextAIState = AI_WAIT;
 		nGameState = GAME_RESET;
@@ -138,6 +142,8 @@ public:
 
 	bool OnUserDestroy() override
 	{
+		delete m_pThunder;
+
 		g_pSoundSystem->Shutdown();
 		delete g_pSoundSystem;
 
@@ -148,7 +154,7 @@ public:
 	}
 
 	bool OnUserUpdate(float fElapsedTime) override
-	{	
+	{
 		Clear(olc::DARK_GREEN);
 
 		switch (nGameState)
@@ -178,14 +184,14 @@ public:
 			prepareTimer += fElapsedTime;
 			if (prepareTimer <= 4.0f)
 			{
-				DrawString({ (ScreenWidth() / 3), (ScreenHeight() / 2) - 8}, "Prepare for round!");
+				DrawString({ (ScreenWidth() / 3), (ScreenHeight() / 2) - 8 }, "Prepare for round!");
 				DrawString({ (ScreenWidth() / 2) - 8, (ScreenHeight() / 2) + 10 }, std::to_string((int)prepareTimer));
 			}
-			else 
+			else
 			{
 				nNextGameState = GAME_ROUND_START;
 			};
-				
+
 
 			break;
 		case GAME_ROUND_START:
@@ -199,12 +205,12 @@ public:
 			bAbleToDrawPlayer = true;
 			roundTimer += fElapsedTime;
 
-			
+
 
 			if (roundTimer < 11.0f)
 			{
 				DrawString({ (ScreenWidth() / 2) - 50, (ScreenHeight() / 2) - 8 }, "Round time: ");
-				DrawString({ ((ScreenWidth() / 2) + ((int)sizeof("Round time: ") * 8)) - 50, (ScreenHeight() / 2) - 8}, std::to_string((int)roundTimer));
+				DrawString({ ((ScreenWidth() / 2) + ((int)sizeof("Round time: ") * 8)) - 50, (ScreenHeight() / 2) - 8 }, std::to_string((int)roundTimer));
 			}
 			else
 			{
@@ -237,7 +243,7 @@ public:
 				nNextGameState = GAME_PREPARE;
 				break;
 			}
-			
+
 			break;
 		case GAME_OVER:
 			// Disable controls and AI, display text and suggest restarting the game;
@@ -248,7 +254,7 @@ public:
 
 			break;
 		}
-		
+
 		SoundOnSwitchState();
 
 		if (bAIEnabled)
@@ -274,7 +280,7 @@ public:
 				if (vLastPos == player.vPos)
 				{
 					player.health -= 10.0f;
-					
+
 				}
 				// Reset attack timer
 				fAIAttackTimer = 0;
@@ -290,15 +296,18 @@ public:
 			if (GetKey(olc::Key::A).bHeld) (player.vPos += {-5.0f, 0.0f})* fElapsedTime;
 			if (GetKey(olc::Key::D).bHeld) (player.vPos += {5.0f, 0.0f})* fElapsedTime;
 		}
-		
+
 		if (player.vPos.x < 0) player.vPos.x = 0;
 		if (player.vPos.y < 0) player.vPos.y = 0;
 		if (player.vPos.x > (ScreenWidth() - 20)) player.vPos.x = ScreenWidth() - 20;
 		if (player.vPos.y > (ScreenHeight() - 20)) player.vPos.y = ScreenHeight() - 20;
 
 		// Draw player
-		if(bAbleToDrawPlayer)
+		if (bAbleToDrawPlayer)
+		{
 			FillRect(player.vPos, { 20, 20 });
+			m_pThunder->Render(this);
+		}
 		
 		// Test output
 		if (bGameOver)
