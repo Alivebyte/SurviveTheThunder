@@ -150,7 +150,7 @@ public:
 
 		pResourcePack->SavePack("datapc_main.respack", "easy peasy lemon squeezy");*/
 
-		m_pSprite = g_pResourceManager->LoadSprite("res/test.bmp");
+		m_pSprite = g_pResourceManager->LoadSprite("res/player.png");
 
 		m_pThunderSprite = g_pResourceManager->LoadSprite("res/test/thunder_2.png");
 
@@ -324,7 +324,11 @@ public:
 		// Draw player
 		if (bAbleToDrawPlayer)
 		{
-			FillRect(player.vPos, { 20, 20 });
+			//FillRect(player.vPos, { 20, 20 });
+			if (m_pSprite)
+			{
+				DrawSprite(player.vPos, m_pSprite);
+			}
 			//m_pThunder->Render(this);
 		}
 
