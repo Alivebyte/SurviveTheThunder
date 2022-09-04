@@ -187,14 +187,14 @@ public:
 
 	bool OnUserUpdate(float fElapsedTime) override
 	{
-		fAccumulatedTime += fElapsedTime;
-		if (fAccumulatedTime >= fTargetFrameTime)
-		{
-			fAccumulatedTime -= fTargetFrameTime;
-			fElapsedTime = fTargetFrameTime;
-		}
-		else
-			return true; // Don't do anything this frame
+		//fAccumulatedTime += fElapsedTime;
+		//if (fAccumulatedTime >= fTargetFrameTime)
+		//{
+		//	fAccumulatedTime -= fTargetFrameTime;
+		//	fElapsedTime = fTargetFrameTime;
+		//}
+		//else
+		//	return true; // Don't do anything this frame
 
 		return GameUpdate(fElapsedTime);
 	}
